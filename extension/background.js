@@ -96,6 +96,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "set_token") {
     authToken = message.token;
     chrome.storage.local.set({ auth_token: message.token });
+    currentPortIndex = 0; // Reset to primary port
     if (ws) ws.close();
     connectWebSocket();
     sendResponse({ status: "ok" });
