@@ -1,0 +1,17 @@
+{
+  "auth_token": "6b525ec81e87c7c627f54b564b5b925e",
+  "active_port": 48123,
+  "always_on_top": true,
+  "click_through": false,
+  "lock_position": false,
+  "bg_opacity": 1.0,
+  "font_family": "Segoe UI",
+  "font_size": 34,
+  "font_color": "#FFFFFF",
+  "highlight_color": "#FFD700",
+  "window_x": 2293,
+  "window_y": 139,
+  "window_w": 800,
+  "window_h": 140,
+  "text_style": "poster"
+}
