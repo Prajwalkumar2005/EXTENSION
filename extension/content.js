@@ -120,13 +120,18 @@
   }
 
   function startTimestampSyncLoop() {
-    if (window._captionSyncTimer) clearInterval(window._captionSyncTimer);
-
+    if (window._captionSyncTimer) {
+      clearInterval(window._captionSyncTimer);
+    }
+    
+    // Also use a video 'timeupdate' listener to bypass background tab throttling
+    const video = document.querySelector("video");
+    if (!video) return;
+    
     let lastSentText = "";
-    window._captionSyncTimer = setInterval(() => {
-      const video = document.querySelector("video");
-      if (!video || video.paused) return;
-
+    
+    const syncLogic = () => {
+      if (video.paused) return;
       const currentTimeMs = video.currentTime * 1000;
       const currentCap = fetchedCaptions.find(c => currentTimeMs >= c.startMs && currentTimeMs <= c.endMs);
 
@@ -134,7 +139,17 @@
         lastSentText = currentCap.text;
         sendCaptionUpdate(currentCap.text, currentCap.startMs, currentCap.endMs);
       }
-    }, 150);
+    };
+
+    // Attach native media event (not throttled in background tabs)
+    if (window._captionSyncHandler) {
+      video.removeEventListener("timeupdate", window._captionSyncHandler);
+    }
+    window._captionSyncHandler = syncLogic;
+    video.addEventListener("timeupdate", syncLogic);
+    
+    // Keep a slow interval just as a fallback in case timeupdate stalls
+    window._captionSyncTimer = setInterval(syncLogic, 500);
   }
 
   // Strategy 2 Fallback: MutationObserver on .ytp-caption-segment + active polling
