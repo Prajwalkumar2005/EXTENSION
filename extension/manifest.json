@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Caption Overlay Bridge",
+  "version": "1.0.0",
+  "description": "Streams YouTube closed-captions to local desktop overlay.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "alarms",
+    "tabs"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/watch*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
