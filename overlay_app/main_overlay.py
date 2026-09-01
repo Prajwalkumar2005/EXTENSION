@@ -103,9 +103,12 @@ class TransparentOverlayApp:
             highlightthickness=0
         )
         self.lyrics_canvas.pack(fill=tk.BOTH, expand=True, padx=12, pady=10)
-        
         # Initial text
         self.draw_poster_text("[ Waiting for Captions ]")
+
+        # Resize Handle (Bottom Right)
+        self.resize_grip = tk.Label(self.main_frame, text="◢", fg="#555555", bg=self.bg_color, cursor="size_nw_se", font=("Segoe UI", 8))
+        self.resize_grip.place(relx=1.0, rely=1.0, anchor="se")
 
     def apply_win32_styles(self):
         if sys.platform != "win32":
@@ -146,6 +149,32 @@ class TransparentOverlayApp:
         self.header_frame.bind("<Button-1>", start_drag)
         self.header_frame.bind("<B1-Motion>", do_drag)
         self.header_frame.bind("<ButtonRelease-1>", stop_drag)
+
+        def start_resize(event):
+            if not self.config.get("lock_position", False):
+                self.start_w = self.root.winfo_width()
+                self.start_h = self.root.winfo_height()
+                self.mouse_x = event.x_root
+                self.mouse_y = event.y_root
+
+        def do_resize(event):
+            if not self.config.get("lock_position", False):
+                deltax = event.x_root - self.mouse_x
+                deltay = event.y_root - self.mouse_y
+                new_w = max(300, self.start_w + deltax)
+                new_h = max(80, self.start_h + deltay)
+                self.root.geometry(f"{new_w}x{new_h}")
+                self.config["window_w"] = new_w
+                self.config["window_h"] = new_h
+                # Redraw on the fly
+                self.draw_poster_text(getattr(self, 'current_caption', '[ Window Resized ]'))
+
+        def stop_resize(event):
+            save_config(self.config)
+
+        self.resize_grip.bind("<Button-1>", start_resize)
+        self.resize_grip.bind("<B1-Motion>", do_resize)
+        self.resize_grip.bind("<ButtonRelease-1>", stop_resize)
 
     def start_server_thread(self):
         def run_loop():
@@ -210,6 +239,7 @@ class TransparentOverlayApp:
     def draw_poster_text(self, text: str, is_tag: bool = False):
         self.lyrics_canvas.delete("all")
         if not text: return
+        self.current_caption = text
         
         # Determine center
         w = self.lyrics_canvas.winfo_width() or self.config.get("window_w", 800)
