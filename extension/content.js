@@ -10,6 +10,16 @@
   let lastHref = location.href;
   let pollInterval = null;
 
+  // INJECT SCRIPT TO SPOOF VISIBILITY (Forces YouTube to render DOM captions in background tabs)
+  const spoofScript = document.createElement('script');
+  spoofScript.textContent = `
+    Object.defineProperty(document, 'hidden', { get: () => false });
+    Object.defineProperty(document, 'visibilityState', { get: () => 'visible' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  `;
+  (document.head || document.documentElement).appendChild(spoofScript);
+  spoofScript.remove();
+
   // SPA Navigation Detection
   window.addEventListener("yt-navigate-finish", () => {
     console.log("[YT Caption Bridge] yt-navigate-finish event detected");

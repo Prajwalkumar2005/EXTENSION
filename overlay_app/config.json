@@ -6,12 +6,12 @@
   "lock_position": false,
   "bg_opacity": 1.0,
   "font_family": "Segoe UI",
-  "font_size": 34,
+  "font_size": 25,
   "font_color": "#FFFFFF",
   "highlight_color": "#FFD700",
-  "window_x": 2293,
-  "window_y": 139,
-  "window_w": 800,
-  "window_h": 140,
+  "window_x": 792,
+  "window_y": -15,
+  "window_w": 830,
+  "window_h": 139,
   "text_style": "poster"
 }
