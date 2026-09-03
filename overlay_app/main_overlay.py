@@ -289,13 +289,74 @@ class TransparentOverlayApp:
                 self.lyrics_canvas.create_text(cx, y_base, text=full_text, font=(font_name, f_size, "bold"), fill="#ff00ff", justify="center")
             self.lyrics_canvas.create_text(cx, y_base, text=full_text, font=(font_name, f_size, "bold"), fill="#ffffff", justify="center")
 
-        else: # minimal
+        elif style == "minimal":
             font_name = self.config.get("font_family", "Segoe UI")
             f_size = base_size
             y_base = h / 2
             full_text = f"{line1}\n{line2}" if line2 else line1
             color = self.config.get("highlight_color", "#FFD700") if is_tag else self.config.get("font_color", "#FFFFFF")
             self.lyrics_canvas.create_text(cx, y_base, text=full_text, font=(font_name, f_size, "bold"), fill=color, justify="center")
+            
+        else:
+            font_name = "Segoe UI"
+            font_weight = "bold"
+            f_size = base_size
+            y_base = h / 2
+            full_text = f"{line1}\n{line2}" if line2 else line1
+            
+            fill_c = "#FFFFFF"
+            outline_c = "#000000"
+            shadow_c = None
+            
+            if style == "classic":
+                fill_c = "#FFD700"
+            elif style == "classic_white":
+                fill_c = "#FFFFFF"
+            elif style == "cyberpunk":
+                font_name = "Courier New"
+                fill_c = "#00FFFF"
+                outline_c = "#FF00FF"
+                shadow_c = "#000000"
+            elif style == "gold":
+                font_name = "Georgia"
+                fill_c = "#FFDF00"
+                outline_c = "#B8860B"
+                shadow_c = "#000000"
+            elif style == "hacker":
+                font_name = "Consolas"
+                fill_c = "#00FF00"
+                outline_c = "#003300"
+            elif style == "blood":
+                font_name = "Impact"
+                fill_c = "#FF0000"
+                outline_c = "#8B0000"
+                shadow_c = "#000000"
+            elif style == "ocean":
+                fill_c = "#00BFFF"
+                outline_c = "#00008B"
+            elif style == "sunset":
+                fill_c = "#FF4500"
+                outline_c = "#800080"
+                shadow_c = "#000000"
+            elif style == "ghost":
+                fill_c = "#F8F8FF"
+                outline_c = None
+                shadow_c = "#A9A9A9"
+            elif style == "vaporwave":
+                font_name = "Verdana"
+                fill_c = "#FF66FF"
+                outline_c = "#00FFFF"
+                shadow_c = "#000000"
+
+            if shadow_c:
+                self.lyrics_canvas.create_text(cx + 3, y_base + 3, text=full_text, font=(font_name, f_size, font_weight), fill=shadow_c, justify="center")
+            
+            if outline_c:
+                offsets = [(-1,-1), (1,-1), (-1,1), (1,1), (-2,0), (2,0), (0,-2), (0,2)]
+                for dx, dy in offsets:
+                    self.lyrics_canvas.create_text(cx + dx, y_base + dy, text=full_text, font=(font_name, f_size, font_weight), fill=outline_c, justify="center")
+                    
+            self.lyrics_canvas.create_text(cx, y_base, text=full_text, font=(font_name, f_size, font_weight), fill=fill_c, justify="center")
 
     def queue_caption(self, text: str, is_asr: bool, is_tag: bool):
         self.update_status("connected", "Streaming Captions")
