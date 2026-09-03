@@ -10,3 +10,4 @@
 - feat(styles): implement Ocean Blue
 - feat(styles): implement Sunset Orange
 - feat(styles): implement Ghost White
+- feat(styles): implement Vaporwave (Purple)
