@@ -9,3 +9,4 @@
 - feat(styles): implement Blood Red
 - feat(styles): implement Ocean Blue
 - feat(styles): implement Sunset Orange
+- feat(styles): implement Ghost White
