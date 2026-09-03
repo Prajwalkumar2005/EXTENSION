@@ -10,16 +10,19 @@ A lightweight, local, and ad-free way to stream YouTube Closed-Captions directly
 
 ![Demo Screenshot](demo_screenshot.png)
 
----
+
 
 ## 🛠️ Installation & Setup (For Users)
 
 Because this tool connects your browser to your Windows desktop, it comes in two parts: a **Desktop App** and a **Chrome Extension**.
 
 ### Step 1: Start the Desktop App
-1. Download the `YouTube_Overlay_App` folder.
-2. Double click `main_overlay.exe` (or run `python main_overlay.py` if you are using the source code).
-3. A transparent window will appear at the top of your screen, and you will see a small green dot indicating the server is listening.
+**Easiest Method:** 
+Simply double-click `run_overlay.bat` in the main folder. This will automatically install requirements and launch the overlay for you!
+
+*(Alternative: You can also double-click `main_overlay.exe` if you downloaded the compiled version, or run `python main_overlay.py` from the `overlay_app` folder).*
+
+A transparent window will appear at the top of your screen, and you will see a small green dot indicating the server is listening.
 
 ### Step 2: Install the Chrome Extension
 1. Open Google Chrome and go to `chrome://extensions`.
