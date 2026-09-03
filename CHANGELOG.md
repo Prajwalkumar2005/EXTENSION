@@ -7,3 +7,4 @@
 - feat(styles): implement Luxury Gold
 - feat(styles): implement Hacker Green
 - feat(styles): implement Blood Red
+- feat(styles): implement Ocean Blue
