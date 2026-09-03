@@ -8,3 +8,4 @@
 - feat(styles): implement Hacker Green
 - feat(styles): implement Blood Red
 - feat(styles): implement Ocean Blue
+- feat(styles): implement Sunset Orange
