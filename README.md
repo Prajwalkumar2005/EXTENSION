@@ -8,6 +8,7 @@ A lightweight, local, and ad-free way to stream YouTube Closed-Captions directly
 - **Zero Cloud**: Everything runs 100% locally on your machine via a WebSocket bridge.
 - **Instant Customization**: Change font sizes and visual styles live from the Chrome Extension popup!
 
+ HERE IS SOME DEMO 
 ![Demo Screenshot](demo_screenshot.png)
 
 
