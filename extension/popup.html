@@ -2,49 +2,83 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>YT Caption Overlay</title>
+  <title>YouTube Desktop Lyrics Overlay</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
 
     body {
-      width: 280px;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #0f0f14, #1c1c28);
+      width: 300px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(145deg, #0d0d12, #181824);
       color: #ffffff;
       margin: 0;
       padding: 16px;
       overflow-x: hidden;
+      box-sizing: border-box;
     }
+
     .header {
-      text-align: center;
-      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .header h2 {
+
+    .title-group h2 {
       margin: 0;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 800;
-      background: linear-gradient(90deg, #ff0000, #ff8c00);
+      background: linear-gradient(90deg, #ff334b, #ff8c00);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: 0.5px;
     }
-    .header p {
-      margin: 4px 0 0;
+
+    .title-group p {
+      margin: 2px 0 0;
       font-size: 11px;
-      color: #8888aa;
+      color: #8f92a1;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fcc419;
+      white-space: nowrap;
+    }
+
+    .status-badge.connected {
+      color: #40c057;
+      border-color: rgba(64, 192, 87, 0.3);
+      background: rgba(64, 192, 87, 0.1);
+    }
+
+    .status-badge.offline {
+      color: #ff6b6b;
+      border-color: rgba(255, 107, 107, 0.3);
+      background: rgba(255, 107, 107, 0.1);
     }
 
     .card {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 12px;
       margin-bottom: 12px;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
     }
 
     .form-group {
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .form-group:last-child {
       margin-bottom: 0;
@@ -52,125 +86,162 @@
 
     label {
       display: block;
-      font-size: 11px;
-      font-weight: 600;
-      color: #aaaacc;
-      margin-bottom: 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #9ea2b6;
+      margin-bottom: 5px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
     }
 
     input[type="text"], select {
       width: 100%;
       box-sizing: border-box;
       padding: 8px 10px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       color: #fff;
       border-radius: 6px;
       font-size: 12px;
-      font-family: 'Inter', sans-serif;
+      font-family: inherit;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.2s ease;
     }
+
     input[type="text"]:focus, select:focus {
-      border-color: #ff0000;
+      border-color: #ff334b;
+      box-shadow: 0 0 8px rgba(255, 51, 75, 0.3);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 9px;
+      background: linear-gradient(90deg, #e50914, #ff5252);
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.4px;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(229, 9, 20, 0.45);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 7px;
+      margin-top: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 11px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
     }
 
     .slider-container {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
+
     input[type="range"] {
       flex: 1;
       -webkit-appearance: none;
       background: transparent;
     }
+
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       height: 14px;
       width: 14px;
       border-radius: 50%;
-      background: #ff0000;
+      background: #ff334b;
       cursor: pointer;
       margin-top: -5px;
-      box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+      box-shadow: 0 0 8px rgba(255, 51, 75, 0.6);
     }
+
     input[type="range"]::-webkit-slider-runnable-track {
       width: 100%;
       height: 4px;
       cursor: pointer;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.15);
       border-radius: 2px;
     }
+
     .val-display {
       font-size: 11px;
-      font-weight: 600;
-      color: #ff8c00;
-      width: 32px;
+      font-weight: 700;
+      color: #ff9800;
+      min-width: 34px;
       text-align: right;
     }
 
-    button {
-      width: 100%;
-      padding: 10px;
-      background: linear-gradient(90deg, #d32f2f, #f44336);
-      border: none;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 800;
-      font-size: 13px;
-      letter-spacing: 0.5px;
-      transition: transform 0.1s, box-shadow 0.2s;
-      box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
-    }
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(244, 67, 54, 0.5);
-    }
-    button:active {
-      transform: translateY(1px);
-    }
-
-    .status {
+    .status-msg {
       font-size: 11px;
-      margin-top: 10px;
+      margin-top: 8px;
       text-align: center;
-      color: #4caf50;
+      min-height: 16px;
       font-weight: 600;
       opacity: 0;
-      transition: opacity 0.3s;
+      transition: opacity 0.25s ease;
     }
-    .status.visible {
+
+    .status-msg.visible {
       opacity: 1;
+    }
+
+    .footer-hint {
+      text-align: center;
+      font-size: 10px;
+      color: #6c7086;
+      margin-top: 8px;
     }
   </style>
 </head>
 <body>
   
   <div class="header">
-    <h2>CAPTION OVERLAY</h2>
-    <p>Live Desktop Lyrics Bridge</p>
-  </div>
-
-  <div class="card">
-    <div class="form-group">
-      <label for="token">Authentication Token</label>
-      <input type="text" id="token" placeholder="Paste token here...">
+    <div class="title-group">
+      <h2>YT LYRICS OVERLAY</h2>
+      <p>Desktop Live Subtitles</p>
     </div>
-    <button id="save-token">Connect Bridge</button>
-    <div class="status" id="status">Token saved!</div>
+    <div class="status-badge" id="status-badge">
+      <span>●</span> <span id="badge-text">Connecting</span>
+    </div>
   </div>
 
   <div class="card">
     <div class="form-group">
-      <label for="style-select">Visual Style</label>
+      <label for="token">Pairing Auth Token</label>
+      <input type="text" id="token" placeholder="Paste desktop token...">
+    </div>
+    <button class="btn-primary" id="save-token">Connect Bridge</button>
+    <button class="btn-secondary" id="test-btn">🎵 Send Test Caption</button>
+    <div class="status-msg" id="status"></div>
+  </div>
+
+  <div class="card">
+    <div class="form-group">
+      <label for="style-select">Visual Typography Style</label>
       <select id="style-select">
-        <option value="poster">Cinematic Poster</option>
-        <option value="neon">Neon Glow</option>
-        <option value="minimal">Minimalist</option>
+        <option value="poster">Cinematic Poster (Dual-Line)</option>
+        <option value="neon">Neon Glow (Cyan/Pink)</option>
+        <option value="minimal">Minimalist (Clean White)</option>
         <option value="classic">Classic Subtitle (Yellow)</option>
         <option value="classic_white">Classic Subtitle (White)</option>
         <option value="cyberpunk">Cyberpunk (Cyan/Pink)</option>
@@ -187,10 +258,14 @@
     <div class="form-group">
       <label for="size-slider">Base Font Size</label>
       <div class="slider-container">
-        <input type="range" id="size-slider" min="16" max="72" value="38">
-        <div class="val-display" id="size-val">38px</div>
+        <input type="range" id="size-slider" min="16" max="72" value="34">
+        <div class="val-display" id="size-val">34px</div>
       </div>
     </div>
+  </div>
+
+  <div class="footer-hint">
+    Play any YouTube video with CC enabled 🎵
   </div>
 
   <script src="popup.js"></script>
