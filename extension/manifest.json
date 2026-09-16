@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Caption Overlay Bridge",
+  "name": "YouTube Desktop Lyrics Overlay",
   "version": "1.0.0",
-  "description": "Streams YouTube closed-captions to local desktop overlay.",
+  "description": "Stream live YouTube closed-captions and lyrics directly to a transparent, always-on-top desktop overlay.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -13,17 +13,34 @@
   "host_permissions": [
     "*://*.youtube.com/*"
   ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "YouTube Desktop Lyrics Overlay",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["*://*.youtube.com/watch*"],
+      "matches": [
+        "*://*.youtube.com/watch*",
+        "*://*.youtube.com/shorts/*",
+        "*://*.youtube.com/live/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
-  ],
-  "action": {
-    "default_popup": "popup.html"
-  }
+  ]
 }
