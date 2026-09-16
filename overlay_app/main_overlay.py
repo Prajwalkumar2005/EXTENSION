@@ -43,11 +43,17 @@ class TransparentOverlayApp:
         self.root.attributes("-topmost", True)
         self.root.attributes("-alpha", self.config.get("bg_opacity", 0.85))
 
-        # Position window
+        # Position window with screen boundary protection
+        screen_w = self.root.winfo_screenwidth()
+        screen_h = self.root.winfo_screenheight()
+        w = min(max(320, self.config.get("window_w", 960)), max(600, screen_w - 40))
+        h = min(max(90, self.config.get("window_h", 160)), max(250, screen_h - 40))
         x = self.config.get("window_x", 300)
-        y = self.config.get("window_y", 100)
-        w = self.config.get("window_w", 800)
-        h = self.config.get("window_h", 140)
+        y = self.config.get("window_y", 80)
+        if x < 0 or x + 100 > screen_w:
+            x = max(20, (screen_w - w) // 2)
+        if y < 0 or y + 60 > screen_h:
+            y = 80
         self.root.geometry(f"{w}x{h}+{x}+{y}")
         
         # Transparent background color keying for Windows desktop transparency
@@ -95,6 +101,9 @@ class TransparentOverlayApp:
 
         self.settings_btn = tk.Button(self.header_frame, text="⚙", font=("Segoe UI", 10), fg="#aaa", bg="#181824", bd=0, command=self.open_settings)
         self.settings_btn.pack(side=tk.RIGHT, padx=4)
+
+        self.copy_btn = tk.Button(self.header_frame, text="📋 Token", font=("Segoe UI", 8), fg="#ccc", bg="#252538", bd=0, padx=6, pady=1, command=self.copy_token)
+        self.copy_btn.pack(side=tk.RIGHT, padx=4)
 
         # Lyrics Display Canvas (for shadow & multi-color typography)
         self.lyrics_canvas = tk.Canvas(
@@ -190,7 +199,11 @@ class TransparentOverlayApp:
 
     def on_bridge_message(self, msg: dict):
         msg_type = msg.get("type")
-        if msg_type == "caption_update":
+        if msg_type == "client_connected":
+            self.root.after(0, self.on_client_connected)
+        elif msg_type == "client_disconnected":
+            self.root.after(0, self.on_client_disconnected, msg.get("count", 0))
+        elif msg_type == "caption_update":
             text = msg.get("text", "")
             is_asr = msg.get("is_asr", False)
             is_tag = msg.get("is_tag", False)
@@ -202,6 +215,15 @@ class TransparentOverlayApp:
             self.root.after(0, self.update_status, "no_captions", "No captions on this video")
         elif msg_type == "config_update":
             self.root.after(0, self.apply_config_update, msg)
+
+    def on_client_connected(self):
+        self.update_status("connected", "Connected to Chrome")
+        self.draw_poster_text("🎵 Connected to Chrome!\nPlay a YouTube Video with CC")
+
+    def on_client_disconnected(self, remaining: int):
+        if remaining == 0:
+            self.update_status("searching", "Searching Bridge...")
+            self.draw_poster_text("[ Waiting for Chrome Extension ]")
 
     def apply_config_update(self, msg: dict):
         # Update config dictionary
@@ -385,20 +407,38 @@ class TransparentOverlayApp:
         # Queue-and-drop timer (~250ms crossfade step)
         self.root.after(250, self.process_next_caption)
 
+    def copy_token(self):
+        token = self.config.get("auth_token", "")
+        self.root.clipboard_clear()
+        self.root.clipboard_append(token)
+        self.copy_btn.config(text="✓ Copied", fg="#40c057")
+        self.root.after(1500, lambda: self.copy_btn.config(text="📋 Token", fg="#ccc"))
+
     def open_settings(self):
         win = tk.Toplevel(self.root)
         win.title("Overlay Settings")
-        win.geometry("360x320")
+        win.geometry("380x330")
         win.configure(bg="#181824")
         win.attributes("-topmost", True)
 
         tk.Label(win, text="YouTube Overlay Settings", font=("Segoe UI", 12, "bold"), fg="#fff", bg="#181824").pack(pady=8)
 
-        # Token display
-        tk.Label(win, text="Auth Token (Paste in Chrome Extension):", font=("Segoe UI", 8), fg="#aaa", bg="#181824").pack()
-        token_entry = tk.Entry(win, width=38, font=("Consolas", 9))
+        # Token display with copy button
+        tk.Label(win, text="Pairing Token (Matches Chrome Extension):", font=("Segoe UI", 8), fg="#aaa", bg="#181824").pack()
+        token_row = tk.Frame(win, bg="#181824")
+        token_row.pack(pady=4)
+        token_entry = tk.Entry(token_row, width=30, font=("Consolas", 9))
         token_entry.insert(0, self.config.get("auth_token", ""))
-        token_entry.pack(pady=4)
+        token_entry.pack(side=tk.LEFT, padx=4)
+
+        def copy_from_settings():
+            self.root.clipboard_clear()
+            self.root.clipboard_append(self.config.get("auth_token", ""))
+            copy_s_btn.config(text="✓ Copied", fg="#40c057")
+            win.after(1500, lambda: copy_s_btn.config(text="Copy", fg="#fff"))
+
+        copy_s_btn = tk.Button(token_row, text="Copy", font=("Segoe UI", 8), bg="#33334d", fg="#fff", bd=0, padx=6, command=copy_from_settings)
+        copy_s_btn.pack(side=tk.LEFT)
 
         # Click-through toggle
         ct_var = tk.BooleanVar(value=self.config.get("click_through", False))
