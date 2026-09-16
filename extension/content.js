@@ -1,41 +1,52 @@
+// YouTube Desktop Lyrics Overlay - Live Caption Bridge
 (function () {
-  console.log("[YT Caption Bridge] Content script initialized");
+  console.log("[YT Lyrics Bridge] Content script initialized");
 
   let currentVideoId = "";
   let captionTracks = [];
-  let fetchedCaptions = []; // [{ startMs, endMs, text }]
+  let fetchedCaptions = [];
   let isASR = false;
   let captionObserver = null;
   let videoElement = null;
   let lastHref = location.href;
   let pollInterval = null;
 
-  // INJECT SCRIPT TO SPOOF VISIBILITY (Forces YouTube to render DOM captions in background tabs)
-  const spoofScript = document.createElement('script');
-  spoofScript.textContent = `
-    Object.defineProperty(document, 'hidden', { get: () => false });
-    Object.defineProperty(document, 'visibilityState', { get: () => 'visible' });
-    document.dispatchEvent(new Event('visibilitychange'));
-  `;
-  (document.head || document.documentElement).appendChild(spoofScript);
-  spoofScript.remove();
+  // Spoof visibility to keep YouTube caption render active even when tab is backgrounded
+  try {
+    const spoofScript = document.createElement("script");
+    spoofScript.textContent = `
+      try {
+        Object.defineProperty(document, 'hidden', { get: () => false });
+        Object.defineProperty(document, 'visibilityState', { get: () => 'visible' });
+        document.dispatchEvent(new Event('visibilitychange'));
+      } catch (e) {}
+    `;
+    (document.head || document.documentElement).appendChild(spoofScript);
+    spoofScript.remove();
+  } catch (e) {}
 
-  // SPA Navigation Detection
+  // Detect YouTube SPA navigation events
   window.addEventListener("yt-navigate-finish", () => {
-    console.log("[YT Caption Bridge] yt-navigate-finish event detected");
     onVideoChange();
   });
 
+  // Watch URL changes & monitor playback state
   pollInterval = setInterval(() => {
     if (location.href !== lastHref) {
       lastHref = location.href;
-      console.log("[YT Caption Bridge] URL change detected via polling");
       onVideoChange();
     }
     checkPlayStateAndAds();
   }, 1000);
 
   function getVideoId() {
+    const pathname = window.location.pathname;
+    if (pathname.startsWith("/shorts/")) {
+      return pathname.split("/shorts/")[1].split("/")[0].split("?")[0];
+    }
+    if (pathname.startsWith("/live/")) {
+      return pathname.split("/live/")[1].split("/")[0].split("?")[0];
+    }
     const params = new URLSearchParams(window.location.search);
     return params.get("v");
   }
@@ -46,7 +57,7 @@
 
     if (videoId === currentVideoId) return;
     currentVideoId = videoId;
-    console.log(`[YT Caption Bridge] Video changed to ${currentVideoId}`);
+    console.log(`[YT Lyrics Bridge] Video loaded: ${currentVideoId}`);
 
     // Reset state
     captionTracks = [];
@@ -57,19 +68,17 @@
       captionObserver = null;
     }
 
-    // Strategy 1: TimedText primary
-    const success = await tryFetchPlayerCaptions();
-    if (!success) {
-      console.log("[YT Caption Bridge] Primary TimedText fetch failed. Enabling DOM fallback Strategy 2");
-      setupDOMObserver();
-    }
+    // Always enable live DOM observer so on-screen CC is immediately mirrored
+    setupDOMObserver();
+
+    // Also fetch TimedText JSON for sub-second precision whenever available
+    tryFetchPlayerCaptions();
   }
 
   async function tryFetchPlayerCaptions() {
     try {
       let playerResponse = null;
 
-      // Try reading page context / movie_player API
       const moviePlayer = document.getElementById("movie_player");
       if (moviePlayer && typeof moviePlayer.getPlayerResponse === "function") {
         try {
@@ -78,7 +87,6 @@
       }
 
       if (!playerResponse || playerResponse?.videoDetails?.videoId !== currentVideoId) {
-        // Fallback to fetch HTML and extract ytInitialPlayerResponse
         const res = await fetch(window.location.href);
         const html = await res.text();
         const match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});(?:var\s|script)/s);
@@ -91,17 +99,14 @@
 
       const tracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
       if (!tracks || tracks.length === 0) {
-        console.log("[YT Caption Bridge] No caption tracks in player response");
         return false;
       }
 
       captionTracks = tracks;
-      // Prefer tracks matching page language or English or first non-auto track
-      let selectedTrack = tracks.find(t => t.languageCode === "hi" || t.languageCode === "en") || tracks[0];
+      let selectedTrack = tracks.find(t => t.languageCode === "en" || t.languageCode === "hi") || tracks[0];
       isASR = selectedTrack.kind === "asr" || (selectedTrack.vssId && selectedTrack.vssId.startsWith("a."));
 
       const timedTextUrl = `${selectedTrack.baseUrl}&fmt=json3`;
-      console.log(`[YT Caption Bridge] Fetching timedtext JSON3 from ${timedTextUrl}`);
       const captionRes = await fetch(timedTextUrl);
       const data = await captionRes.json();
 
@@ -119,12 +124,11 @@
           fetchedCaptions.push({ startMs, endMs, text });
         });
 
-        console.log(`[YT Caption Bridge] Strategy 1 success: Loaded ${fetchedCaptions.length} caption events`);
         startTimestampSyncLoop();
         return true;
       }
     } catch (e) {
-      console.error("[YT Caption Bridge] TimedText fetch error:", e);
+      console.warn("[YT Lyrics Bridge] TimedText fetch note:", e.message);
     }
     return false;
   }
@@ -133,13 +137,12 @@
     if (window._captionSyncTimer) {
       clearInterval(window._captionSyncTimer);
     }
-    
-    // Also use a video 'timeupdate' listener to bypass background tab throttling
+
     const video = document.querySelector("video");
     if (!video) return;
-    
+
     let lastSentText = "";
-    
+
     const syncLogic = () => {
       if (video.paused) return;
       const currentTimeMs = video.currentTime * 1000;
@@ -151,21 +154,16 @@
       }
     };
 
-    // Attach native media event (not throttled in background tabs)
     if (window._captionSyncHandler) {
       video.removeEventListener("timeupdate", window._captionSyncHandler);
     }
     window._captionSyncHandler = syncLogic;
     video.addEventListener("timeupdate", syncLogic);
-    
-    // Keep a slow interval just as a fallback in case timeupdate stalls
-    window._captionSyncTimer = setInterval(syncLogic, 500);
+    window._captionSyncTimer = setInterval(syncLogic, 400);
   }
 
-  // Strategy 2 Fallback: MutationObserver on .ytp-caption-segment + active polling
+  // Live DOM observer on YouTube CC elements (.ytp-caption-segment)
   function setupDOMObserver() {
-    console.log("[YT Caption Bridge] Setting up Strategy 2 (DOM Observer & Poller)");
-
     let lastText = "";
     const checkCaptions = () => {
       const segments = document.querySelectorAll(".ytp-caption-segment");
@@ -173,14 +171,13 @@
         const fullText = Array.from(segments).map(s => s.textContent).join(" ").replace(/\s+/g, " ").trim();
         if (fullText && fullText !== lastText) {
           lastText = fullText;
-          console.log("[YT Caption Bridge DOM]:", fullText);
           sendCaptionUpdate(fullText, null, null);
         }
       }
     };
 
     if (window._domCapTimer) clearInterval(window._domCapTimer);
-    window._domCapTimer = setInterval(checkCaptions, 200);
+    window._domCapTimer = setInterval(checkCaptions, 180);
 
     const targetNode = document.querySelector(".html5-video-player") || document.body;
     if (captionObserver) captionObserver.disconnect();
@@ -198,7 +195,7 @@
     videoElement = document.querySelector("video");
     const isPaused = videoElement ? videoElement.paused : true;
 
-    chrome.runtime.sendMessage({
+    safeSendMessage({
       type: "play_state",
       is_playing: !isPaused && !isAd,
       is_ad: !!isAd,
@@ -206,19 +203,10 @@
     });
   }
 
-  function sendNoCaptionsState() {
-    chrome.runtime.sendMessage({
-      type: "no_captions",
-      video_id: currentVideoId,
-      sent_at: Date.now()
-    });
-  }
-
   function sendCaptionUpdate(rawText, startMs, endMs) {
-    // Edge case: Filter bracketed non-lyric tags [Music], [Applause] or flag them
     const isBracketTag = /^\[.+\]$/.test(rawText.trim());
 
-    chrome.runtime.sendMessage({
+    safeSendMessage({
       type: "caption_update",
       text: rawText,
       start_ms: startMs,
@@ -227,6 +215,16 @@
       is_tag: isBracketTag,
       sent_at: Date.now()
     });
+  }
+
+  function safeSendMessage(payload) {
+    try {
+      chrome.runtime.sendMessage(payload, () => {
+        if (chrome.runtime.lastError) {
+          // Extension reloaded or idle
+        }
+      });
+    } catch (e) {}
   }
 
   // Initial trigger
