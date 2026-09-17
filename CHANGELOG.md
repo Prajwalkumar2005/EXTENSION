@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.1.0] - Interactive Controls & Diagnostics
+
+### Added
+- **Global Keyboard Shortcuts:** Support for `Ctrl + / -` (font sizing), `Ctrl + S` (cycle styles), `Ctrl + L` (lock position), `Ctrl + T` (click-through toggle), and `Ctrl + H` (hide/unhide).
+- **Audio-Reactive Equalizer:** Dynamic 5-bar animated visualizer in the overlay header that dances during playback.
+- **Custom Color Picker & Live Preview:** Extension popup now features a color wheel/hex picker and an interactive typography preview card.
+- **Smooth Micro-Glide Transitions:** Lyrics glide into position smoothly with balanced line breaking to eliminate jarring visual cuts.
+- **System Health Diagnostics:** Built-in `diagnostics.py` and `diagnose_setup.bat` verifying Python environment, port bindings, extension manifest, and transparency compositing.
+
 ## [v1.0.0] - Production Release
 
 ### Added

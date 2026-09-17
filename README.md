@@ -76,15 +76,32 @@ Getting started takes less than 60 seconds. Anyone can download and launch it di
 
 ---
 
+---
+
+## ⚡ Keyboard Shortcuts (Global Desktop Hotkeys)
+
+| Shortcut | Action |
+| :--- | :--- |
+| **`Ctrl` + `+`** or **`Ctrl` + `=`** | Increase Font Size (+2px) |
+| **`Ctrl` + `-`** | Decrease Font Size (-2px) |
+| **`Ctrl` + `S`** | Cycle to Next Visual Typography Style |
+| **`Ctrl` + `L`** | Toggle Overlay Position Lock |
+| **`Ctrl` + `T`** | Toggle Click-Through Mode (pass mouse clicks through) |
+| **`Ctrl` + `H`** | Hide / Unhide Overlay Window |
+
+---
+
 ## 🕹️ Desktop Overlay Controls
 
 - **Move Overlay:** Click and drag anywhere along the top dark header bar.
 - **Resize Overlay:** Click and drag the bottom-right resize grip (**◢**).
+- **Audio Visualizer:** Animated reactive equalizer bars in the header pulse during playback.
 - **Copy Pairing Token:** Click the **📋 Token** button in the header to copy your pairing key with 1 click.
 - **Settings Panel:** Click the **⚙** gear icon in the header to:
   - Toggle **Click-Through Mode** (clicks pass through overlay).
   - Toggle **Lock Position** (prevents accidental movement).
   - Adjust **Background Opacity** slider.
+  - View full list of hotkeys.
 - **Close Overlay:** Click the **✕** button on the right side of the header.
 
 ---
@@ -94,6 +111,7 @@ Getting started takes less than 60 seconds. Anyone can download and launch it di
 | Script | Purpose |
 | :--- | :--- |
 | **`run_overlay.bat`** | One-click launcher for Windows; auto-detects Python or standalone EXE. |
+| **`diagnose_setup.bat`** | Runs full system health check (Python, ports, dependencies, manifest). |
 | **`package_extension.bat`** | Bundles the `extension/` folder into `dist/yt-lyrics-overlay-extension.zip`. |
 | **`setup_windows.bat`** | Automatically installs and upgrades Python dependencies from `requirements.txt`. |
 | **`overlay_app/test_bridge.py`** | Automated security and communication test suite for WebSocket bridge. |
