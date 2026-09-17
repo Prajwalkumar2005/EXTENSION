@@ -301,7 +301,14 @@ class TransparentOverlayApp:
         elif state == "searching":
             self.status_canvas.itemconfig(self.status_dot, fill="#fcc419") # Yellow
 
-    def draw_poster_text(self, text: str, is_tag: bool = False):
+    def balance_lyrics_lines(self, text: str):
+        words = text.split()
+        if len(words) <= 3:
+            return text, ""
+        mid = (len(words) + 1) // 2
+        return " ".join(words[:mid]), " ".join(words[mid:])
+
+    def draw_poster_text(self, text: str, is_tag: bool = False, animate: bool = True):
         self.lyrics_canvas.delete("all")
         if not text: return
         self.current_caption = text
@@ -313,14 +320,9 @@ class TransparentOverlayApp:
         
         style = self.config.get("text_style", "poster")
         base_size = self.config.get("font_size", 38)
+        accent_color = self.config.get("highlight_color", "#FBC02D")
         
-        # Split text into two halves
-        words = text.split()
-        if len(words) <= 2:
-            line1, line2 = " ".join(words), ""
-        else:
-            mid = len(words) // 2
-            line1, line2 = " ".join(words[:mid]), " ".join(words[mid:])
+        line1, line2 = self.balance_lyrics_lines(text)
 
         if style == "poster":
             font_name = "Impact"
@@ -337,11 +339,11 @@ class TransparentOverlayApp:
             if line2:
                 draw_glow(line1, y_base - (base_size//2), f_size1)
                 draw_glow(line2, y_base + (base_size//2) + 4, f_size2)
-                self.lyrics_canvas.create_text(cx, y_base - (base_size//2), text=line1, font=(font_name, f_size1), fill="#FBC02D", justify="center")
+                self.lyrics_canvas.create_text(cx, y_base - (base_size//2), text=line1, font=(font_name, f_size1), fill=accent_color, justify="center")
                 self.lyrics_canvas.create_text(cx, y_base + (base_size//2) + 4, text=line2, font=(font_name, f_size2), fill="#FFFFFF", justify="center")
             else:
                 draw_glow(line1, y_base, f_size1)
-                self.lyrics_canvas.create_text(cx, y_base, text=line1, font=(font_name, f_size1), fill="#FBC02D", justify="center")
+                self.lyrics_canvas.create_text(cx, y_base, text=line1, font=(font_name, f_size1), fill=accent_color, justify="center")
 
         elif style == "neon":
             font_name = "Comic Sans MS" if sys.platform == "win32" else "Arial" # Fallback neon-ish
@@ -422,6 +424,11 @@ class TransparentOverlayApp:
                     self.lyrics_canvas.create_text(cx + dx, y_base + dy, text=full_text, font=(font_name, f_size, font_weight), fill=outline_c, justify="center")
                     
             self.lyrics_canvas.create_text(cx, y_base, text=full_text, font=(font_name, f_size, font_weight), fill=fill_c, justify="center")
+
+        # Micro-glide transition for butter-smooth lyrics rendering
+        if animate:
+            self.lyrics_canvas.move("all", 0, 3)
+            self.root.after(20, lambda: self.lyrics_canvas.move("all", 0, -3))
 
     def queue_caption(self, text: str, is_asr: bool, is_tag: bool):
         self.update_status("connected", "Streaming Captions")
