@@ -65,6 +65,7 @@ class TransparentOverlayApp:
         self.setup_ui()
         self.apply_win32_styles()
         self.setup_drag()
+        self.setup_hotkeys()
 
         # Queue for incoming captions (Queue-and-Drop for fast lyrics)
         self.caption_queue = collections.deque(maxlen=5)
@@ -414,10 +415,65 @@ class TransparentOverlayApp:
         self.copy_btn.config(text="✓ Copied", fg="#40c057")
         self.root.after(1500, lambda: self.copy_btn.config(text="📋 Token", fg="#ccc"))
 
+    def setup_hotkeys(self):
+        self.root.bind_all("<Control-plus>", lambda e: self.adjust_font_size(2))
+        self.root.bind_all("<Control-equal>", lambda e: self.adjust_font_size(2))
+        self.root.bind_all("<Control-KP_Add>", lambda e: self.adjust_font_size(2))
+        self.root.bind_all("<Control-minus>", lambda e: self.adjust_font_size(-2))
+        self.root.bind_all("<Control-underscore>", lambda e: self.adjust_font_size(-2))
+        self.root.bind_all("<Control-KP_Subtract>", lambda e: self.adjust_font_size(-2))
+        self.root.bind_all("<Control-s>", lambda e: self.cycle_style())
+        self.root.bind_all("<Control-S>", lambda e: self.cycle_style())
+        self.root.bind_all("<Control-l>", lambda e: self.cycle_lock())
+        self.root.bind_all("<Control-L>", lambda e: self.cycle_lock())
+        self.root.bind_all("<Control-t>", lambda e: self.cycle_clickthrough())
+        self.root.bind_all("<Control-T>", lambda e: self.cycle_clickthrough())
+        self.root.bind_all("<Control-h>", lambda e: self.toggle_visibility())
+        self.root.bind_all("<Control-H>", lambda e: self.toggle_visibility())
+
+    def adjust_font_size(self, delta: int):
+        cur_size = self.config.get("font_size", 34)
+        new_size = max(16, min(72, cur_size + delta))
+        self.config["font_size"] = new_size
+        save_config(self.config)
+        self.draw_poster_text(getattr(self, 'current_caption', f'[ Font Size: {new_size}px ]'))
+
+    def cycle_style(self):
+        styles = ["poster", "neon", "minimal", "classic", "classic_white", "cyberpunk", "gold", "hacker", "blood", "ocean", "sunset", "ghost", "vaporwave"]
+        cur = self.config.get("text_style", "poster")
+        idx = styles.index(cur) if cur in styles else 0
+        new_style = styles[(idx + 1) % len(styles)]
+        self.config["text_style"] = new_style
+        save_config(self.config)
+        self.draw_poster_text(getattr(self, 'current_caption', f'[ Style: {new_style} ]'))
+
+    def cycle_lock(self):
+        self.config["lock_position"] = not self.config.get("lock_position", False)
+        save_config(self.config)
+        state = "Locked" if self.config["lock_position"] else "Unlocked"
+        self.badge_label.config(text=f"[{state.upper()}]")
+        self.root.after(2000, lambda: self.badge_label.config(text=""))
+
+    def cycle_clickthrough(self):
+        self.config["click_through"] = not self.config.get("click_through", False)
+        save_config(self.config)
+        self.apply_win32_styles()
+        state = "Click-Through ON" if self.config["click_through"] else "Click-Through OFF"
+        self.badge_label.config(text=f"[{state.upper()}]")
+        self.root.after(2000, lambda: self.badge_label.config(text=""))
+
+    def toggle_visibility(self):
+        if getattr(self, '_is_hidden', False):
+            self.root.deiconify()
+            self._is_hidden = False
+        else:
+            self.root.withdraw()
+            self._is_hidden = True
+
     def open_settings(self):
         win = tk.Toplevel(self.root)
         win.title("Overlay Settings")
-        win.geometry("380x330")
+        win.geometry("380x420")
         win.configure(bg="#181824")
         win.attributes("-topmost", True)
 
@@ -466,8 +522,25 @@ class TransparentOverlayApp:
         op_scale.config(command=update_op)
         op_scale.pack(fill=tk.X, padx=20, pady=4)
 
+        # Hotkeys reference box
+        hk_frame = tk.Frame(win, bg="#101018", bd=1, relief="solid")
+        hk_frame.pack(fill=tk.X, padx=20, pady=8)
+        tk.Label(hk_frame, text="⚡ Keyboard Shortcuts", font=("Segoe UI", 8, "bold"), fg="#ff8c00", bg="#101018").pack(anchor="w", padx=8, pady=(4, 2))
+        shortcuts = [
+            ("Ctrl + / -", "Adjust Font Size"),
+            ("Ctrl + S", "Cycle Next Style"),
+            ("Ctrl + L", "Toggle Position Lock"),
+            ("Ctrl + T", "Toggle Click-Through"),
+            ("Ctrl + H", "Hide / Unhide Overlay")
+        ]
+        for key, desc in shortcuts:
+            row = tk.Frame(hk_frame, bg="#101018")
+            row.pack(fill=tk.X, padx=8, pady=1)
+            tk.Label(row, text=key, font=("Consolas", 8, "bold"), fg="#4dabf7", bg="#101018", width=12, anchor="w").pack(side=tk.LEFT)
+            tk.Label(row, text=desc, font=("Segoe UI", 8), fg="#ccc", bg="#101018", anchor="w").pack(side=tk.LEFT)
+
         # OS Notice
-        tk.Label(win, text="⚠️ OS Note: Exclusive Fullscreen games hide overlays.\nUse Borderless Windowed mode in games.", font=("Segoe UI", 8, "italic"), fg="#fcc419", bg="#181824", justify="left").pack(pady=12)
+        tk.Label(win, text="⚠️ OS Note: Exclusive Fullscreen games hide overlays.\nUse Borderless Windowed mode in games.", font=("Segoe UI", 8, "italic"), fg="#fcc419", bg="#181824", justify="left").pack(pady=6)
 
     def close_app(self):
         save_config(self.config)
