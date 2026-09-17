@@ -244,6 +244,8 @@ class TransparentOverlayApp:
             self.config["text_style"] = msg["text_style"]
         if "font_size" in msg:
             self.config["font_size"] = msg["font_size"]
+        if "highlight_color" in msg:
+            self.config["highlight_color"] = msg["highlight_color"]
         save_config(self.config)
         
         # Redraw the current text
