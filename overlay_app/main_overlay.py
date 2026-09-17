@@ -6,6 +6,7 @@ import asyncio
 import threading
 import collections
 import time
+import math
 import tkinter as tk
 from tkinter import ttk
 from bridge_server import BridgeServer, load_or_create_config, save_config
@@ -95,6 +96,17 @@ class TransparentOverlayApp:
         # Non-Lyric / ASR tag badge
         self.badge_label = tk.Label(self.header_frame, text="", font=("Segoe UI", 7, "bold"), fg="#4dabf7", bg="#181824")
         self.badge_label.pack(side=tk.LEFT, padx=6)
+
+        # Audio-reactive Equalizer Bars
+        self.eq_canvas = tk.Canvas(self.header_frame, width=28, height=14, bg="#181824", highlightthickness=0)
+        self.eq_canvas.pack(side=tk.LEFT, padx=4)
+        self.eq_bars = [
+            self.eq_canvas.create_rectangle(i * 5 + 2, 11, i * 5 + 5, 13, fill="#555566", width=0)
+            for i in range(5)
+        ]
+        self.is_playing = False
+        self.eq_phase = 0.0
+        self.animate_eq()
 
         # Action Buttons
         self.close_btn = tk.Button(self.header_frame, text="✕", font=("Segoe UI", 9), fg="#aaa", bg="#181824", bd=0, command=self.close_app)
@@ -242,7 +254,35 @@ class TransparentOverlayApp:
         # The easiest way is to just let the next caption render it, but we want live feedback
         self.draw_poster_text("[ Configuration Updated ]")
 
+    def animate_eq(self):
+        try:
+            if getattr(self, 'is_playing', False) and self.config.get("show_visualizer", True):
+                self.eq_phase += 0.3
+                heights = [
+                    max(2, int(6 + 5 * math.sin(self.eq_phase + 0))),
+                    max(2, int(8 + 5 * math.sin(self.eq_phase + 1.2))),
+                    max(2, int(7 + 6 * math.sin(self.eq_phase + 2.4))),
+                    max(2, int(9 + 4 * math.sin(self.eq_phase + 3.6))),
+                    max(2, int(5 + 4 * math.sin(self.eq_phase + 4.8)))
+                ]
+                for bar, h in zip(self.eq_bars, heights):
+                    coords = self.eq_canvas.coords(bar)
+                    if coords:
+                        self.eq_canvas.coords(bar, coords[0], 13 - h, coords[2], 13)
+                        self.eq_canvas.itemconfig(bar, fill="#40c057")
+            else:
+                for bar in getattr(self, 'eq_bars', []):
+                    coords = self.eq_canvas.coords(bar)
+                    if coords:
+                        self.eq_canvas.coords(bar, coords[0], 11, coords[2], 13)
+                        self.eq_canvas.itemconfig(bar, fill="#555566")
+        except Exception:
+            pass
+
+        self.root.after(80, self.animate_eq)
+
     def update_play_state(self, is_playing: bool):
+        self.is_playing = is_playing
         if not is_playing:
             self.root.attributes("-alpha", 0.3)
         else:
