@@ -9,6 +9,7 @@
 A sleek, lightweight, and completely private tool to stream **YouTube Closed-Captions & lyrics** directly to a beautiful, transparent, always-on-top desktop overlay in real time. Perfect for karaoke, singing along, language learning, or watching tutorials while working in other windows or playing games.
 
 ---
+here is some 
 
 ## 📸 Live Preview
 
