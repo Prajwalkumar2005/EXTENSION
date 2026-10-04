@@ -17,7 +17,7 @@ here is some DEMO
 
 ---
 
-## ⚡ Quick Start Guide (Zero-Config Plug & Play)
+## ⚡ Quick Start Guide (Zero-Config Plug & Play) .
 
 Getting started takes less than 60 seconds. Anyone can download and launch it directly:
 
