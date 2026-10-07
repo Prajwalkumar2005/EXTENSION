@@ -11,7 +11,7 @@ A sleek, lightweight, and completely private tool to stream **YouTube Closed-Cap
 ---
 here is some DEMO
 
-## 📸 Live Preview
+## 📸 Live Preview (app isnt live due to small glitch )
 
 ![Demo Screenshot](demo_screenshot.png)
 
