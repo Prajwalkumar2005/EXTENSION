@@ -21,6 +21,8 @@ here is some DEMO
 
 Getting started takes less than 60 seconds. Anyone can download and launch it directly:
 
+check tutorial:
+
 ### 1. Install Chrome Extension (30 Seconds)
 1. **Download** or clone this repository to your computer.
 2. Open Google Chrome and navigate to:
